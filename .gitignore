@@ -1,6 +1,5 @@
 # Project exclude paths
-/blaze-client/target/
-/blaze-server/target/
+target/
 
 .idea
 *.iml

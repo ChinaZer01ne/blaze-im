@@ -1,5 +1,10 @@
 package com.github.server;
 
+import com.github.blaze.ImDecoder;
+import com.github.blaze.ImEncoder;
+import com.github.server.config.ServerConfig;
+import com.github.server.handler.ImServerHandler;
+import com.github.server.initializer.BlazeServerInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
@@ -16,7 +21,12 @@ import io.netty.util.CharsetUtil;
  */
 public class BlazeServer {
     public static void main(String[] args) {
-
+        new BlazeServer().start();
+    }
+    /**
+     * server start
+     */
+    private void start() {
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workGroup = new NioEventLoopGroup();
 
@@ -24,28 +34,9 @@ public class BlazeServer {
         serverBootstrap.group(bossGroup, workGroup)
                 .channel(NioServerSocketChannel.class)
                 .handler(new LoggingHandler(LogLevel.INFO))
-                .childHandler(new ChannelInitializer<SocketChannel>() {
-                    @Override
-                    protected void initChannel(SocketChannel socketChannel) throws Exception {
-                        ChannelPipeline pipeline = socketChannel.pipeline();
-                        pipeline.addLast(new SimpleChannelInboundHandler<ByteBuf>() {
-                            @Override
-                            protected void channelRead0(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf) throws Exception {
-                                byteBuf.retain();
-                                System.out.println(byteBuf.toString(CharsetUtil.UTF_8));
-                                channelHandlerContext.writeAndFlush(byteBuf);
-                            }
-
-                            @Override
-                            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-                                cause.printStackTrace();
-                                ctx.close();
-                            }
-                        });
-                    }
-                });
+                .childHandler(new BlazeServerInitializer());
         try {
-            ChannelFuture future = serverBootstrap.bind(8888).sync();
+            ChannelFuture future = serverBootstrap.bind(ServerConfig.LISTEN_PORT).sync();
             future.channel().closeFuture().sync();
         } catch (InterruptedException e) {
             e.printStackTrace();

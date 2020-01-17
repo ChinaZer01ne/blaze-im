@@ -20,6 +20,8 @@
   <modules>
     <module>blaze-server</module>
     <module>blaze-client</module>
+    <module>blaze-protocol</module>
+    <module>blaze-codec</module>
   </modules>
 
 </project>

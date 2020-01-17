@@ -1,5 +1,10 @@
 package com.github.client;
 
+import com.github.blaze.ImDecoder;
+import com.github.blaze.ImEncoder;
+import com.github.client.config.ClientConfig;
+import com.github.client.handler.ImClientHandler;
+import com.github.client.initializer.BlazeClientInitializer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -15,37 +20,20 @@ import io.netty.util.CharsetUtil;
  */
 public class BlazeClient {
     public static void main(String[] args) {
+        new BlazeClient().start();
+    }
+    /**
+     * client start
+     */
+    private void start() {
         Bootstrap bootstrap = new Bootstrap();
         EventLoopGroup group = new NioEventLoopGroup();
         bootstrap.group(group)
                 .channel(NioSocketChannel.class)
-                .handler(new ChannelInitializer<SocketChannel>() {
-                    @Override
-                    protected void initChannel(SocketChannel socketChannel) throws Exception {
-                        ChannelPipeline pipeline = socketChannel.pipeline();
-                        pipeline.addLast(new SimpleChannelInboundHandler<ByteBuf>() {
-                            @Override
-                            protected void channelRead0(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf) throws Exception {
-                                System.out.println(byteBuf.toString(CharsetUtil.UTF_8));
-                            }
-
-
-                            @Override
-                            public void channelActive(ChannelHandlerContext ctx) throws Exception {
-                                ctx.writeAndFlush(Unpooled.copiedBuffer("Hello World".getBytes()));
-                            }
-
-                            @Override
-                            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-                                cause.printStackTrace();
-                                ctx.close();
-                            }
-                        });
-                    }
-                });
+                .handler(new BlazeClientInitializer());
 
         try {
-            ChannelFuture future = bootstrap.connect("127.0.0.1", 8888).sync();
+            ChannelFuture future = bootstrap.connect(ClientConfig.SERVER_HOST, ClientConfig.SERVER_POST).sync();
             future.channel().closeFuture().sync();
         } catch (InterruptedException e) {
             e.printStackTrace();
